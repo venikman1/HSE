@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 
 using std::cin;
 using std::cout;
@@ -35,7 +36,7 @@ public:
         return 0;
     }
 
-    void push_back(Node<T>* node) { // Не знаю как это исправить, ведь нужно проверять, что список изначально пустой
+    void push_back(Node<T>* node) {
         ++size;
         if (head == 0) {
             head = tail = node;
@@ -49,17 +50,18 @@ public:
     }
 
     List split() {
-        Node<T>* center = begin(), *prev = 0;
-        for (size_t i = 0; i != size / 2; ++i) {
-            prev = center;
-            center = center->next;
+        Node<T>* fast_pointer = begin(), *slow_pointer = begin(), *prev = 0;
+        while (fast_pointer != 0 && fast_pointer != tail) {
+            prev = slow_pointer;
+            slow_pointer = slow_pointer->next;
+            fast_pointer = fast_pointer->next->next;
         }
         prev->next = 0;
         size_t another_size = (size + 1) / 2;
         size /= 2;
         Node<T>* another_tail = tail;
         tail = prev;
-        return List(another_size, center, another_tail);
+        return List(another_size, slow_pointer, another_tail);
     }
 
     size_t get_size() const {
@@ -76,17 +78,13 @@ List<T> merge_sort(List<T> queue, Cmp cmp) {
     queue2 = merge_sort(queue2, cmp);
     List<T> res;
     Node<T>* p1 = queue.begin(), *p2 = queue2.begin();
-    while (p1 != queue.end() || p2 != queue2.end()) {
-        if (p2 == queue2.end() || (p1 != queue.end() && !cmp(p2->elem, p1->elem))) {
-            Node<T>* t = p1->next;
-            res.push_back(p1);
-            p1 = t;
+    while (p1 != 0 || p2 != 0) {
+        if (p1 == 0 || (p2 != 0 && cmp(p2->elem, p1->elem))) {
+            std::swap(p1, p2);
         }
-        else {
-            Node<T>* t = p2->next;
-            res.push_back(p2);
-            p2 = t;
-        }
+        Node<T>* t = p1->next;
+        res.push_back(p1);
+        p1 = t;
     }
     return res;
 }
