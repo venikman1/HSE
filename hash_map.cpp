@@ -10,6 +10,7 @@ private:
     std::vector<std::pair<typename std::list<std::pair<const KeyType, ValueType>>::iterator, size_t>> hash_table;
     std::list<std::pair<const KeyType, ValueType>> all_elements;
     size_t element_count;
+
 public:
     using iterator = typename std::list<std::pair<const KeyType, ValueType>>::iterator;
     using const_iterator = typename std::list<std::pair<const KeyType, ValueType>>::const_iterator;
@@ -93,7 +94,7 @@ public:
         *this = std::move(new_hash_map);
     }
 
-    iterator find(KeyType key) {
+    iterator find(const KeyType& key) {
         if (hash_table.size() == 0)
             return end();
         size_t hash = hasher(key) % hash_table.size();
@@ -105,7 +106,7 @@ public:
         return end();
     }
 
-    const_iterator find(KeyType key) const {
+    const_iterator find(const KeyType& key) const {
         if (hash_table.size() == 0)
             return end();
         size_t hash = hasher(key) % hash_table.size();
@@ -134,7 +135,7 @@ public:
         return new_element;
     }
 
-    void erase(KeyType key) {
+    void erase(const KeyType& key) {
         auto found = find(key);
         if (found == end())
             return;
@@ -147,7 +148,7 @@ public:
         --element_count;
     }
 
-    ValueType& operator[](KeyType key) {
+    ValueType& operator[](const KeyType& key) {
         auto found = find(key);
         if (found == end()) {
             return insert(std::pair<const KeyType, ValueType>(key, ValueType()))->second;
@@ -155,7 +156,7 @@ public:
         return found->second;
     }
 
-    const ValueType& at(KeyType key) const {
+    const ValueType& at(const KeyType& key) const {
         auto found = find(key);
         if (found == end())
             throw std::out_of_range("No such element in HashMap");
@@ -181,15 +182,8 @@ public:
         }
     }
 
-    HashMap(std::initializer_list<std::pair<const KeyType, ValueType>> init_list, Hash hasher = Hash()) :hasher(hasher) {
-        element_count = 0;
-        hash_table.resize(init_list.size());
-        auto start = init_list.begin();
-        while (start != init_list.end()) {
-            insert(*start);
-            ++start;
-        }
-    }
+    HashMap(std::initializer_list<std::pair<const KeyType, ValueType>> init_list, Hash hasher = Hash()) :
+        HashMap(init_list.begin(), init_list.end(), init_list.size(), hasher) {}
 
     void clear() {
         hash_table.clear();
