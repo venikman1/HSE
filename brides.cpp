@@ -4,20 +4,28 @@
 #include <string>
 #include <iomanip>
 #include <set>
+#include <limits>
 
-using namespace std;
+using std::vector;
+using std::cin;
+using std::cout;
+using std::set;
+using std::pair;
+using std::max;
+using std::min;
+
 using ll = long long;
-const ll INF = 100000000000000000;
+static constexpr ll INF = std::numeric_limits<ll>::max();
 
 struct Edge {
     ll from, to, cost, flow, capacity, back_position, id;
 };
 
-Edge& get_inv_edge(vector<vector<Edge>>& graph, Edge& edge) {
+Edge& get_inv_edge(vector<vector<Edge>>& graph, const Edge& edge) {
     return graph[edge.to][edge.back_position];
 }
 
-ll get_potential_cost(vector<ll>& potentials, Edge& e) {
+ll get_potential_cost(vector<ll>& potentials, const Edge& e) {
     return e.cost + potentials[e.from] - potentials[e.to];
 }
 
@@ -36,11 +44,9 @@ vector<ll> calc_distances(vector<vector<Edge>>& graph, ll start, vector<Edge*>& 
         if (distances[vertex] > dist) {
             distances[vertex] = dist;
             previous[vertex] = edge;
-            // cerr << dist << " " << vertex << " " << p << "\n";
             for (Edge& e : graph[vertex]) {
                 if (e.capacity > 0) {
-                    heap.insert({dist + get_potential_cost(potentials, e), {e.to, &e}});
-                    // cerr << vertex << " to " << e.to << " with cost " << e.cost << "\n";
+                    heap.insert(pair<ll, pair<ll, Edge*>>{dist + get_potential_cost(potentials, e), pair<ll, Edge*>{e.to, &e}});
                 }
             }
         }
@@ -61,7 +67,6 @@ ll find_mincost_maxflow(vector<vector<Edge>>& graph, ll start, ll finish, ll flo
 
             vertex = previous[vertex]->from;
         }
-        // cerr << "finded flow " << found_flow << "\n";
         cur_flow += found_flow;
         if (found_flow == 0)
             break;
@@ -75,7 +80,6 @@ ll find_mincost_maxflow(vector<vector<Edge>>& graph, ll start, ll finish, ll flo
         }
 
         potentials = calc_distances(graph, start, previous, potentials);
-        // cerr << "updated potentials cur flow is " << cur_flow << "\n";
     }
     return cur_flow;
 }
@@ -83,7 +87,6 @@ ll find_mincost_maxflow(vector<vector<Edge>>& graph, ll start, ll finish, ll flo
 ll decompose_one_path(vector<vector<Edge>>& graph, vector<ll>& path, ll cur, ll finish) {
     if (cur == finish)
         return 0;
-    // cerr << cur << "\n";
     for (Edge& e : graph[cur]) {
         if (e.flow == 1) {
             e.flow = 0;
@@ -95,7 +98,7 @@ ll decompose_one_path(vector<vector<Edge>>& graph, vector<ll>& path, ll cur, ll 
 }
 
 int main() {
-    ios_base::sync_with_stdio(false);
+    std::ios_base::sync_with_stdio(false);
     cin.tie(0);
     cout.tie(0);
 
@@ -118,13 +121,12 @@ int main() {
         cout << "-1\n";
         return 0;
     }
-    // cerr << "starting of decomposition\n";
     vector<vector<ll>> answers(k);
     ll sum_of_dists = 0;
     for (int i = 0; i < k; ++i) {
         sum_of_dists += decompose_one_path(graph, answers[i], 0, n - 1);
     }
-    cout << fixed << setprecision(6) << static_cast<double>(sum_of_dists) / k << "\n";
+    cout << std::fixed << std::setprecision(6) << static_cast<double>(sum_of_dists) / k << "\n";
     for (int i = 0; i < k; ++i) {
         cout << answers[i].size() << " ";
         for (ll a : answers[i])
