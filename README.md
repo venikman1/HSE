@@ -1,2 +1,2 @@
-# HSE
-Review my code pls
+# HashMap for HSE homework
+Yet another HashMap implementation
